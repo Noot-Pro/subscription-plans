@@ -1,0 +1,52 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('plans', function (Blueprint $table) {
+            $table->id();
+            $table->string('slug')->unique();
+            $table->string('type')->nullable();
+            $table->json('name');
+            $table->json('description')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->decimal('price', 10, 2)->default(0.00);
+            $table->decimal('signup_fee', 10, 2)->default(0.00);
+            $table->string('subscription_model')->default('fixed');
+            $table->string('currency', 3);
+            $table->smallInteger('trial_period')->unsigned()->default(0);
+            $table->string('trial_interval')->default('day');
+            $table->smallInteger('invoice_period')->unsigned()->default(0);
+            $table->string('invoice_interval')->default('month');
+            $table->smallInteger('grace_period')->unsigned()->default(0);
+            $table->string('grace_interval')->default('day');
+            $table->tinyInteger('prorate_day')->unsigned()->nullable();
+            $table->tinyInteger('prorate_period')->unsigned()->nullable();
+            $table->tinyInteger('prorate_extend_due')->unsigned()->nullable();
+            $table->smallInteger('active_subscribers_limit')->unsigned()->nullable();
+            $table->mediumInteger('sort_order')->unsigned()->default(0);
+            $table->boolean('is_visible')->default(1);
+            $table->integer('sequence')->default(0);
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+            });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('plans');
+    }
+};

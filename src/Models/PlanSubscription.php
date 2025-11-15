@@ -1,0 +1,528 @@
+<?php
+
+declare(strict_types=1);
+
+namespace NootPro\SubscriptionPlans\Models;
+
+use NootPro\SubscriptionPlans\Enums\Interval;
+use NootPro\SubscriptionPlans\Enums\SubscriptionModel;
+use NootPro\SubscriptionPlans\Events\SubscriptionDeleted;
+use NootPro\SubscriptionPlans\Services\Period;
+use NootPro\SubscriptionPlans\Traits\BelongsToPlan;
+use NootPro\SubscriptionPlans\Traits\HasSlug;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
+use LogicException;
+use Spatie\Sluggable\SlugOptions;
+use Spatie\Translatable\HasTranslations;
+
+/**
+ * PlanSubscription.
+ *
+ * @property Carbon|null $trial_ends_at
+ * @property Carbon|null $starts_at
+ * @property Carbon|null $ends_at
+ * @property Carbon|null $cancels_at
+ * @property Carbon|null $canceled_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Plan $plan
+ * @property-read Collection|PlanSubscriptionUsage[] $usage
+ * @property-read Model $subscriber
+ *
+ * @method static Builder|PlanSubscription byPlanId($planId)
+ * @method static Builder|PlanSubscription findEndedPeriod()
+ * @method static Builder|PlanSubscription findEndedTrial()
+ * @method static Builder|PlanSubscription findEndingPeriod($dayRange = 3)
+ * @method static Builder|PlanSubscription findEndingTrial($dayRange = 3)
+ * @method static Builder|PlanSubscription ofSubscriber(Model $subscriber)
+ * @method static Builder|PlanSubscription whereCanceledAt($value)
+ * @method static Builder|PlanSubscription whereCancelsAt($value)
+ * @method static Builder|PlanSubscription whereCreatedAt($value)
+ * @method static Builder|PlanSubscription whereDeletedAt($value)
+ * @method static Builder|PlanSubscription whereDescription($value)
+ * @method static Builder|PlanSubscription whereEndsAt($value)
+ * @method static Builder|PlanSubscription whereId($value)
+ * @method static Builder|PlanSubscription whereTitle($value)
+ * @method static Builder|PlanSubscription wherePlanId($value)
+ * @method static Builder|PlanSubscription whereSlug($value)
+ * @method static Builder|PlanSubscription whereStartsAt($value)
+ * @method static Builder|PlanSubscription whereTrialEndsAt($value)
+ * @method static Builder|PlanSubscription whereUpdatedAt($value)
+ * @method static Builder|PlanSubscription whereSubscriberId($value)
+ * @method static Builder|PlanSubscription whereSubscriberType($value)
+ */
+class PlanSubscription extends Model
+{
+    use BelongsToPlan;
+    use HasSlug;
+    use HasTranslations;
+    use SoftDeletes;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'subscriber_id',
+        'subscriber_type',
+        'plan_id',
+        'slug',
+        'name',
+        'description',
+        'subscription_type',
+        'trial_ends_at',
+        'starts_at',
+        'ends_at',
+        'cancels_at',
+        'canceled_at',
+        'timezone',
+        'is_active',
+        'is_paid',
+        'created_by',
+        'updated_by',
+    ];
+
+    protected $casts = [
+        'subscription_type' => SubscriptionModel::class,
+        'trial_ends_at' => 'datetime',
+        'starts_at' => 'datetime',
+        'ends_at' => 'datetime',
+        'cancels_at' => 'datetime',
+        'canceled_at' => 'datetime',
+        'is_active' => 'boolean',
+        'is_paid' => 'boolean',
+    ];
+
+    /** @var array<int, string> */
+    public $translatable = [
+        'name',
+        'description',
+    ];
+
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::creating(function (self $model): void {
+            if (! $model->starts_at || ! $model->ends_at) {
+                $model->setNewPeriod();
+            }
+            
+            // Ensure only one active subscription per subscriber
+            if ($model->is_active && $model->subscriber_id && $model->subscriber_type) {
+                $model->deactivateOtherSubscriptions();
+            }
+        });
+
+        static::updating(function (self $model): void {
+            // If this subscription is being activated, deactivate all other active subscriptions
+            if ($model->isDirty('is_active') && $model->is_active && $model->subscriber_id && $model->subscriber_type) {
+                $model->deactivateOtherSubscriptions();
+            }
+        });
+
+        static::deleted(function (self $subscription): void {
+            $subscription->usage()->delete();
+
+            // Fire event for project-specific logic (cache clearing, etc.)
+            event(new SubscriptionDeleted($subscription));
+        });
+    }
+
+    public function getSlugOptions(): SlugOptions
+    {
+        return SlugOptions::create()
+            ->doNotGenerateSlugsOnUpdate()
+            ->generateSlugsFrom('name')
+            ->saveSlugsTo('slug');
+    }
+
+    /**
+     * @return MorphTo<Model, $this>
+     */
+    public function subscriber(): MorphTo
+    {
+        return $this->morphTo('subscriber', 'subscriber_type', 'subscriber_id', 'id');
+    }
+
+    /**
+     * @return HasMany<PlanSubscriptionUsage, $this>
+     */
+    public function usage(): HasMany
+    {
+        return $this->hasMany(PlanSubscriptionUsage::class, 'subscription_id');
+    }
+
+    public function active(): bool
+    {
+        return $this->is_active && ! $this->trashed();
+    }
+
+    public function inactive(): bool
+    {
+        return ! $this->active();
+    }
+
+    public function onTrial(): bool
+    {
+        return $this->trial_ends_at && Carbon::now()->lt($this->trial_ends_at);
+    }
+
+    public function canceled(): bool
+    {
+        return $this->canceled_at && Carbon::now()->gte($this->canceled_at);
+    }
+
+    public function ended(): bool
+    {
+        return $this->ends_at && Carbon::now()->gte($this->ends_at);
+    }
+
+    public function cancel(bool $immediately = false): self
+    {
+        $this->canceled_at = Carbon::now();
+        $this->is_active = false;
+
+        if ($immediately) {
+            $this->ends_at = $this->canceled_at;
+        }
+
+        $this->save();
+
+        return $this;
+    }
+
+    public function changePlan(Plan $plan): self
+    {
+        // If plans does not have the same billing frequency
+        // (e.g., invoice_interval and invoice_period) we will update
+        // the billing dates starting today, and since we are basically creating
+        // a new billing cycle, the usage data will be cleared.
+        if ($this->plan->invoice_interval !== $plan->invoice_interval || $this->plan->invoice_period !== $plan->invoice_period) {
+            $this->setNewPeriod($plan->invoice_interval, $plan->invoice_period);
+            $this->usage()->delete();
+        }
+
+        // Attach new plan to subscription
+        $this->plan_id = $plan->id;
+        $this->save();
+
+        return $this;
+    }
+
+    /**
+     * Renew subscription period.
+     *
+     * @return $this
+     *
+     * @throws LogicException
+     */
+    public function renew(): self
+    {
+        if ($this->ended() && $this->canceled()) {
+            throw new LogicException('Unable to renew canceled ended subscription.');
+        }
+
+        $subscription = $this;
+
+        DB::transaction(function () use ($subscription): void {
+            // Deactivate all other active subscriptions for this subscriber
+            $subscription->deactivateOtherSubscriptions();
+
+            // Clear usage data
+            $subscription->usage()->delete();
+
+            // Renew period
+            $subscription->setNewPeriod();
+            $subscription->canceled_at = null;
+            $subscription->is_active = true;
+            $subscription->save();
+        });
+
+        return $this;
+    }
+
+    /**
+     * Scope subscription usage by feature slug.
+     *
+     * @param  Builder<PlanSubscription>  $builder
+     * @return Builder<PlanSubscription>
+     */
+    public function scopeOfSubscriber(Builder $builder, Model $subscriber): Builder
+    {
+        return $builder->where('subscriber_type', $subscriber->getMorphClass())
+            ->where('subscriber_id', $subscriber->getKey());
+    }
+
+    /**
+     * Scope subscription usage by feature slug.
+     *
+     * @param  Builder<PlanSubscription>  $builder
+     * @return Builder<PlanSubscription>
+     */
+    public function scopeFindEndingTrial(Builder $builder, int $dayRange = 3): Builder
+    {
+        $from = Carbon::now();
+        $to = Carbon::now()->addDays($dayRange);
+
+        return $builder->whereBetween('trial_ends_at', [$from, $to]);
+    }
+
+    /**
+     * Scope subscription usage by feature slug.
+     *
+     * @param  Builder<PlanSubscription>  $builder
+     * @return Builder<PlanSubscription>
+     */
+    public function scopeFindEndedTrial(Builder $builder): Builder
+    {
+        return $builder->where('trial_ends_at', '<=', Carbon::now());
+    }
+
+    /**
+     * Scope subscription usage by feature slug.
+     *
+     * @param  Builder<PlanSubscription>  $builder
+     * @return Builder<PlanSubscription>
+     */
+    public function scopeFindEndingPeriod(Builder $builder, int $dayRange = 3): Builder
+    {
+        $from = Carbon::now();
+        $to = Carbon::now()->addDays($dayRange);
+
+        return $builder->whereBetween('ends_at', [$from, $to]);
+    }
+
+    /**
+     * Scope subscription usage by feature slug.
+     *
+     * @param  Builder<PlanSubscription>  $builder
+     * @return Builder<PlanSubscription>
+     */
+    public function scopeFindEndedPeriod(Builder $builder): Builder
+    {
+        return $builder->where('ends_at', '<=', Carbon::now());
+    }
+
+    public function scopeActive(Builder $builder): Builder
+    {
+        return $builder->where('is_active', true);
+    }
+
+    /**
+     * Scope subscription usage by feature slug.
+     *
+     * @param  Builder<PlanSubscription>  $builder
+     * @return Builder<PlanSubscription>
+     */
+    public function scopeFindActive(Builder $builder): Builder
+    {
+        return $builder->active();
+    }
+
+    /**
+     * Set new subscription period.
+     *
+     * @return $this
+     */
+    protected function setNewPeriod(Interval|string $invoice_interval = '', ?int $invoice_period = null, ?Carbon $start = null): self
+    {
+        if (empty($invoice_interval)) {
+            $invoice_interval = $this->plan->invoice_interval;
+        }
+        // Ensure $invoice_interval is always a string
+        if ($invoice_interval instanceof Interval) {
+            $invoice_interval = $invoice_interval->value;
+        }
+
+        if (empty($invoice_period)) {
+            $invoice_period = $this->plan->invoice_period;
+        }
+
+        $period = new Period(
+            interval: $invoice_interval,
+            count: $invoice_period,
+            start: $start ?? Carbon::now()
+        );
+
+        $this->starts_at = $period->getStartDate();
+        $this->ends_at = $period->getEndDate();
+
+        return $this;
+    }
+
+    public function recordFeatureUsage(string $featureSlug, int $uses = 1, bool $incremental = true): PlanSubscriptionUsage
+    {
+        $feature = $this->plan->features()->where('slug', $featureSlug)->firstOrFail();
+
+        $usage = $this->usage()->firstOrNew([
+            'subscription_id' => $this->getKey(),
+            'feature_id' => $feature->getKey(),
+        ]);
+
+        if ($feature->resettable_period) {
+            // Set expiration date when the usage record is new or doesn't have one.
+            if ($usage->valid_until === null) {
+                // Set date from subscription creation date so the reset
+                // period match the period specified by the subscription's plan.
+                $usage->valid_until = $feature->getResetDate($this->created_at);
+            } elseif ($usage->expired()) {
+                // If the usage record has been expired, let's assign
+                // a new expiration date and reset the uses to zero.
+                $usage->valid_until = $feature->getResetDate($usage->valid_until);
+                $usage->used = 0;
+            }
+        }
+
+        $usage->used = $incremental ? $usage->used + $uses : $uses;
+
+        $usage->save();
+
+        return $usage;
+    }
+
+    public function reduceFeatureUsage(string $featureSlug, int $uses = 1): ?PlanSubscriptionUsage
+    {
+        $usage = $this->usage()->byFeatureSlug($featureSlug, $this->plan_id)->first();
+
+        if ($usage === null) {
+            return null;
+        }
+
+        $usage->used = max($usage->used - $uses, 0);
+
+        $usage->save();
+
+        return $usage;
+    }
+
+    /**
+     * Determine if the feature can be used.
+     */
+    public function canUseFeature(string $featureSlug): bool
+    {
+        $featureValue = $this->getFeatureValue($featureSlug);
+        $usage = $this->usage()->byFeatureSlug($featureSlug, $this->plan_id)->first();
+
+        if ($featureValue === -1) {
+            return true;
+        }
+
+        if ($featureValue === 0 || ! $usage || $usage->expired()) {
+            return false;
+        }
+
+        return $this->getFeatureRemainings($featureSlug) > 0;
+    }
+
+    /**
+     * Get how many times the feature has been used.
+     */
+    public function getFeatureUsage(string $featureSlug): int
+    {
+        $usage = $this->usage()->byFeatureSlug($featureSlug, $this->plan_id)->first();
+
+        return (! $usage || $usage->expired()) ? 0 : (int) $usage->used;
+    }
+
+    /**
+     * Get the available uses.
+     */
+    public function getFeatureRemainings(string $featureSlug): int
+    {
+        return $this->getFeatureValue($featureSlug) - $this->getFeatureUsage($featureSlug);
+    }
+
+    public function getFeatureValue(string $featureSlug): int
+    {
+        $feature = $this->plan->features()->where('slug', $featureSlug)->first();
+
+        return (int) ($feature->value ?? 0);
+    }
+
+    /**
+     * @return BelongsTo<Plan, $this>
+     */
+    public function plan(): BelongsTo
+    {
+        return $this->belongsTo(Plan::class, 'plan_id');
+    }
+
+    /**
+     * Get remaining feature usage.
+     * 
+     * Note: This method only considers the base plan feature value.
+     * If you need to include additional purchased features, extend this method
+     * or use getFeatureRemainings() which considers this subscription's usage only.
+     */
+    public function getFeatureRemaining(string $featureSlug): int
+    {
+        return $this->getFeatureRemainings($featureSlug);
+    }
+
+    public function decreaseUsage(string $featureSlug, int $amount = 1): void
+    {
+        /** @var PlanFeature|null $feature */
+        $feature = $this->plan->features()->where('slug', $featureSlug)->first();
+
+        if (! $feature) {
+            return;
+        }
+
+        /** @var PlanSubscriptionUsage|null $usage */
+        $usage = $this->usage()->where('feature_id', $feature->id)->first();
+
+        if ($usage) {
+            $usage->used = max(0, ($usage->used - $amount));
+            $usage->save();
+        }
+    }
+
+    /**
+     * Get total feature balance (plan value + any additional purchased).
+     * 
+     * Note: This is a simplified version. For projects with additional
+     * feature purchases, extend this method in your project.
+     */
+    public function getTotalFeatureBalance(string $featureSlug): int
+    {
+        return (int) $this->getFeatureValue($featureSlug);
+    }
+
+    /**
+     * Deactivate all other active subscriptions for the same subscriber.
+     * This ensures only one subscription can be active at a time.
+     *
+     * @return void
+     */
+    protected function deactivateOtherSubscriptions(): void
+    {
+        if (! $this->subscriber_id || ! $this->subscriber_type) {
+            return;
+        }
+
+        $query = static::query()
+            ->where('subscriber_type', $this->subscriber_type)
+            ->where('subscriber_id', $this->subscriber_id)
+            ->where('is_active', true);
+
+        // Exclude current subscription if it has an ID (for updates)
+        if ($this->getKey()) {
+            $query->where('id', '!=', $this->getKey());
+        }
+
+        $query->update([
+            'is_active' => false,
+        ]);
+    }
+}
