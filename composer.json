@@ -1,6 +1,5 @@
 {
-    "$schema": "https://getcomposer.org/schema.json",
-    "name": "noot-web/subscription-plans",
+    "name": "noot-pro/subscription-plans",
     "description": "A comprehensive subscription and plans management system for Laravel",
     "type": "library",
     "keywords": [
@@ -13,8 +12,9 @@
     "license": "MIT",
     "authors": [
         {
-            "name": "Hamza",
-            "email": "hamza@example.com"
+            "name": "Hamza Mughales",
+            "email": "hamzawemughales@gmail.com",
+            "homepage": "https://github.com/Hamza-Mughales"
         }
     ],
     "require": {
