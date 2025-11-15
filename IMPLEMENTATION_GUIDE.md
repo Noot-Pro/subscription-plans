@@ -411,7 +411,7 @@ public function index()
     $plans = Plan::where('is_active', true)
         ->where('is_visible', true)
         ->with('features')
-        ->ordered()
+        ->orderBy('sort_order', 'asc')
         ->get();
     
     return view('plans.index', compact('plans'));

@@ -15,8 +15,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use InvalidArgumentException;
-use Spatie\EloquentSortable\Sortable;
-use Spatie\EloquentSortable\SortableTrait;
 use Spatie\Sluggable\SlugOptions;
 use Spatie\Translatable\HasTranslations;
 
@@ -27,7 +25,6 @@ use Spatie\Translatable\HasTranslations;
  * @property-read Collection|PlanSubscriptionUsage[] $usage
  *
  * @method static Builder|PlanFeature byPlanId($planId)
- * @method static Builder|PlanFeature ordered($direction = 'asc')
  * @method static Builder|PlanFeature whereCreatedAt($value)
  * @method static Builder|PlanFeature whereDeletedAt($value)
  * @method static Builder|PlanFeature whereDescription($value)
@@ -41,13 +38,12 @@ use Spatie\Translatable\HasTranslations;
  * @method static Builder|PlanFeature whereUpdatedAt($value)
  * @method static Builder|PlanFeature whereValue($value)
  */
-class PlanFeature extends Model implements Sortable
+class PlanFeature extends Model
 {
     use BelongsToPlan;
     use HasSlug;
     use HasTranslations;
     use SoftDeletes;
-    use SortableTrait;
 
     /**
      * The attributes that are mass assignable.
@@ -69,11 +65,6 @@ class PlanFeature extends Model implements Sortable
     public $translatable = [
         'name',
         'description',
-    ];
-
-    /** @var array<string, mixed> */
-    public $sortable = [
-        'order_column_name' => 'sort_order',
     ];
 
     /** @var array<string, string> */
