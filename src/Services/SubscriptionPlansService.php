@@ -29,6 +29,8 @@ class SubscriptionPlansService
 
     /**
      * Get all active plans.
+     *
+     * @return Collection<int, Plan>
      */
     public function getActivePlans(): Collection
     {
@@ -39,6 +41,8 @@ class SubscriptionPlansService
 
     /**
      * Get all visible plans.
+     *
+     * @return Collection<int, Plan>
      */
     public function getVisiblePlans(): Collection
     {
@@ -140,7 +144,8 @@ class SubscriptionPlansService
         $type = get_class($subscriber);
         $id   = $subscriber->getKey();
         foreach ($modulesEnum::cases() as $module) {
-            Cache::forget("module_enabled_{$type}_{$id}_{$module->value}");
+            $moduleValue = $module instanceof \BackedEnum ? $module->value : $module->name;
+            Cache::forget("module_enabled_{$type}_{$id}_{$moduleValue}");
         }
     }
 
@@ -156,7 +161,8 @@ class SubscriptionPlansService
         }
         foreach ($modulesEnum::cases() as $module) {
             // Warm the cache
-            $this->moduleEnabled($subscriber, $module->value);
+            $moduleValue = $module instanceof \BackedEnum ? $module->value : $module->name;
+            $this->moduleEnabled($subscriber, $moduleValue);
         }
     }
 

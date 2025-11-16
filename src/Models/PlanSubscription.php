@@ -28,6 +28,10 @@ use Spatie\Translatable\HasTranslations;
 /**
  * PlanSubscription.
  *
+ * @property int $plan_id
+ * @property int $subscriber_id
+ * @property string $subscriber_type
+ * @property bool $is_active
  * @property Carbon|null $trial_ends_at
  * @property Carbon|null $starts_at
  * @property Carbon|null $ends_at
@@ -65,6 +69,7 @@ use Spatie\Translatable\HasTranslations;
 class PlanSubscription extends Model
 {
     use BelongsToPlan;
+    /** @use HasFactory<PlanSubscriptionFactory> */
     use HasFactory;
     use HasSlug;
     use HasTranslations;
@@ -317,6 +322,10 @@ class PlanSubscription extends Model
         return $builder->where('ends_at', '<=', Carbon::now());
     }
 
+    /**
+     * @param  Builder<PlanSubscription>  $builder
+     * @return Builder<PlanSubscription>
+     */
     public function scopeActive(Builder $builder): Builder
     {
         return $builder->where('is_active', true);
@@ -554,9 +563,9 @@ class PlanSubscription extends Model
     /**
      * Create a new factory instance for the model.
      *
-     * @return \Illuminate\Database\Eloquent\Factories\Factory<static>
+     * @return PlanSubscriptionFactory
      */
-    protected static function newFactory()
+    protected static function newFactory(): PlanSubscriptionFactory
     {
         return PlanSubscriptionFactory::new();
     }

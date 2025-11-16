@@ -4,7 +4,12 @@ namespace NootPro\SubscriptionPlans\Listeners;
 
 class RefreshSubscriberModuleCacheOnModuleEvents
 {
-    public function handle($event): void
+    /**
+     * Handle the event.
+     *
+     * @param object $event
+     */
+    public function handle(object $event): void
     {
         $module = $event->module ?? null;
         $plan   = $module?->plan;

@@ -22,6 +22,12 @@ use Spatie\Translatable\HasTranslations;
 /**
  * Plan.
  *
+ * @property int $id
+ * @property string $name
+ * @property string $slug
+ * @property float $price
+ * @property Interval $invoice_interval
+ * @property int $invoice_period
  * @property-read Collection|PlanFeature[]      $features
  * @property-read Collection|PlanSubscription[] $subscriptions
  *
@@ -50,6 +56,7 @@ use Spatie\Translatable\HasTranslations;
  */
 class Plan extends Model
 {
+    /** @use HasFactory<PlanFactory> */
     use HasFactory;
     use HasSlug;
     use HasTranslations;
@@ -192,9 +199,9 @@ class Plan extends Model
     /**
      * Create a new factory instance for the model.
      *
-     * @return \Illuminate\Database\Eloquent\Factories\Factory<static>
+     * @return PlanFactory
      */
-    protected static function newFactory()
+    protected static function newFactory(): PlanFactory
     {
         return PlanFactory::new();
     }

@@ -19,7 +19,3 @@ parameters:
     universalObjectCratesClasses:
         - Illuminate\Support\Fluent
 
-    ignoreErrors:
-        - '#Unsafe usage of new static#'
-        - '#Method NootPro\\SubscriptionPlans\\Tests\\.+::setUp\(\) should call parent::setUp\(\)#'
-

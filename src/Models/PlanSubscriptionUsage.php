@@ -13,8 +13,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * PlanSubscriptionUsage.
  *
+ * @property int $subscription_id
  * @property int $used
  * @property Carbon|null $valid_until
+ * @property Carbon|null $expires_at Alias for valid_until
  * @property-read PlanFeature      $feature
  * @property-read PlanSubscription $subscription
  *

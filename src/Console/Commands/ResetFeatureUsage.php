@@ -54,7 +54,7 @@ class ResetFeatureUsage extends Command
                 'Subscription' => $usage->subscription_id,
                 'Feature'      => $usage->feature->name ?? 'N/A',
                 'Used'         => $usage->used,
-                'Expires At'   => $usage->expires_at?->format('Y-m-d H:i:s') ?? 'N/A',
+                'Expires At'   => $usage->valid_until?->format('Y-m-d H:i:s') ?? 'N/A',
             ];
         })->toArray();
 
@@ -77,8 +77,8 @@ class ResetFeatureUsage extends Command
 
         $reset = 0;
         foreach ($expiredUsages as $usage) {
-            $usage->used       = 0;
-            $usage->expires_at = null;
+            $usage->used        = 0;
+            $usage->valid_until = null;
             $usage->save();
             $reset++;
         }

@@ -7,7 +7,12 @@ use NootPro\SubscriptionPlans\Enums\Modules as PackageModulesEnum;
 
 class RefreshSubscriberModuleCacheOnSubscriptionEvents
 {
-    public function handle($event): void
+    /**
+     * Handle the event.
+     *
+     * @param object $event
+     */
+    public function handle(object $event): void
     {
         $subscription = $event->subscription ?? null;
         $subscriber   = $subscription?->subscriber;
@@ -38,7 +43,8 @@ class RefreshSubscriberModuleCacheOnSubscriptionEvents
             $modulesEnum = config('subscription-plans.enums.modules', PackageModulesEnum::class);
             if (enum_exists($modulesEnum)) {
                 foreach ($modulesEnum::cases() as $module) {
-                    Cache::forget("company_{$subscriber->id}_module_{$module->value}");
+                    $moduleValue = $module instanceof \BackedEnum ? $module->value : $module->name;
+                    Cache::forget("company_{$subscriber->id}_module_{$moduleValue}");
                 }
             }
 

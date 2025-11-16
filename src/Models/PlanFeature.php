@@ -21,6 +21,10 @@ use Spatie\Translatable\HasTranslations;
 /**
  * PlanFeature.
  *
+ * @property int $plan_id
+ * @property string $slug
+ * @property string $resettable_interval
+ * @property int $resettable_period
  * @property-read Plan $plan
  * @property-read Collection|PlanSubscriptionUsage[] $usage
  *
@@ -100,6 +104,8 @@ class PlanFeature extends Model
 
     /**
      * Ensure slug is always stored as a string
+     *
+     * @param mixed $value
      */
     public function setSlugAttribute($value): void
     {

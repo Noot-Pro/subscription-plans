@@ -6,7 +6,12 @@ use NootPro\SubscriptionPlans\Facades\SubscriptionPlans;
 
 class ClearSubscriptionCache
 {
-    public function handle($event): void
+    /**
+     * Handle the event.
+     *
+     * @param object $event
+     */
+    public function handle(object $event): void
     {
         $subscription = $event->subscription ?? null;
         $subscriber   = $subscription?->subscriber;
