@@ -59,7 +59,6 @@ class SubscriptionFeatureManager
      *
      * @param  string  $feature  Feature slug
      * @param  Model|null  $subscriber  Optional subscriber model. If not provided, uses resolver.
-     * @return bool
      */
     public static function canUse(string $feature, ?Model $subscriber = null): bool
     {
@@ -86,6 +85,7 @@ class SubscriptionFeatureManager
         // If a custom counter is registered, check against total balance
         if (isset(static::$featureCounters[$feature])) {
             $recordsCount = call_user_func(static::$featureCounters[$feature], $subscriber);
+
             return $activeSubscription->getTotalFeatureBalance($feature) > $recordsCount;
         }
 
@@ -124,8 +124,6 @@ class SubscriptionFeatureManager
 
     /**
      * Resolve the current subscriber using the configured resolver.
-     *
-     * @return Model|null
      */
     protected static function resolveSubscriber(): ?Model
     {
@@ -142,7 +140,6 @@ class SubscriptionFeatureManager
      * Get active subscription for subscriber.
      *
      * @param  Model  $subscriber  Subscriber model
-     * @return PlanSubscription|null
      */
     protected static function getActiveSubscription(Model $subscriber): ?PlanSubscription
     {
@@ -155,13 +152,9 @@ class SubscriptionFeatureManager
 
     /**
      * Check if model has HasPlanSubscriptions trait.
-     *
-     * @param  object  $model
-     * @return bool
      */
     protected static function hasTrait(object $model): bool
     {
         return in_array(HasPlanSubscriptions::class, class_uses_recursive($model), true);
     }
 }
-
