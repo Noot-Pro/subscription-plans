@@ -494,7 +494,59 @@ class PlanSubscription extends Model
      */
     protected function getAdditionalFeatureQuantity(string $featureSlug): int
     {
-        return 0; // Default: no additional features
+        return $this->getFeatureAvailableQuantity($featureSlug);
+    }
+
+    /**
+     * Get the available quantity of a feature that was purchased and added to this subscription.
+     *
+     * This method queries the plan_subscription_features table to get the quantity
+     * of additional features purchased for this subscription. It can be configured
+     * via config('subscription-plans.models.plan_subscription_feature') to use a
+     * custom model class, or it will use DB facade to query the table directly.
+     *
+     * @param string $featureSlug The slug of the feature
+     * @return int The quantity of the feature available (0 if not found)
+     */
+    public function getFeatureAvailableQuantity(string $featureSlug): int
+    {
+        // Ensure plan relationship is loaded
+        if (! $this->relationLoaded('plan')) {
+            $this->load('plan');
+        }
+
+        if (! $this->plan) {
+            return 0;
+        }
+
+        // Find the feature by slug
+        $feature = $this->plan->features()->where('slug', $featureSlug)->first();
+
+        if (! $feature) {
+            return 0;
+        }
+
+        // Try to use configured model class if available
+        $modelClass = config('subscription-plans.models.plan_subscription_feature');
+
+        if ($modelClass && class_exists($modelClass)) {
+            $subscriptionFeature = $modelClass::where('subscription_id', $this->id)
+                ->where('feature_id', $feature->id)
+                ->first();
+
+            return $subscriptionFeature ? (int) $subscriptionFeature->quantity : 0;
+        }
+
+        // Fallback to DB facade if model class is not configured
+        $tableName = config('subscription-plans.table_names.plan_subscription_features', 'plan_subscription_features');
+
+        $result = DB::table($tableName)
+            ->where('subscription_id', $this->id)
+            ->where('feature_id', $feature->id)
+            ->whereNull('deleted_at')
+            ->first();
+
+        return $result ? (int) $result->quantity : 0;
     }
 
     /**
