@@ -144,8 +144,14 @@ return [
     |
     | Configure the SubscriptionFeatureManager with resolvers and counters.
     |
-    | - subscriber_resolver: Callback that returns the current subscriber model
+    | - subscriber_resolver: Callback that returns the current subscriber model.
+    |   For Filament, use: function () { return \Filament\Facades\Filament::getTenant(); }
     | - feature_counters: Array of feature slug => callback pairs for counting usage
+    |
+    | Example for Filament:
+    | 'subscriber_resolver' => function () {
+    |     return \Filament\Facades\Filament::getTenant();
+    | },
     |
     */
     'feature_manager' => [
