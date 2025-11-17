@@ -23,7 +23,7 @@ trait TracksFeatureUsage
      * @param  Model|null  $subscriber  The subscriber model (must use HasPlanSubscriptions trait)
      * @param  string  $featureSlug  The feature slug to track
      * @param  int  $uses  Number of uses to record (default: 1)
-     * @return bool  Returns true if usage was recorded, false otherwise
+     * @return bool Returns true if usage was recorded, false otherwise
      */
     protected function recordFeatureUsageForSubscriber(?Model $subscriber, string $featureSlug, int $uses = 1): bool
     {
@@ -58,7 +58,7 @@ trait TracksFeatureUsage
      * @param  Model|null  $subscriber  The subscriber model (must use HasPlanSubscriptions trait)
      * @param  string  $featureSlug  The feature slug to decrease
      * @param  int  $amount  Amount to decrease (default: 1)
-     * @return bool  Returns true if usage was decreased, false otherwise
+     * @return bool Returns true if usage was decreased, false otherwise
      */
     protected function decreaseFeatureUsageForSubscriber(?Model $subscriber, string $featureSlug, int $amount = 1): bool
     {
@@ -92,7 +92,7 @@ trait TracksFeatureUsage
      *
      * @param  PlanSubscription  $subscription  The subscription to check
      * @param  string  $featureSlug  The feature slug to check for
-     * @return bool  Returns true if the plan has the feature, false otherwise
+     * @return bool Returns true if the plan has the feature, false otherwise
      */
     protected function planHasFeature(PlanSubscription $subscription, string $featureSlug): bool
     {
@@ -109,11 +109,10 @@ trait TracksFeatureUsage
      * Check if a model uses the HasPlanSubscriptions trait.
      *
      * @param  Model  $model  The model to check
-     * @return bool  Returns true if the model uses HasPlanSubscriptions trait
+     * @return bool Returns true if the model uses HasPlanSubscriptions trait
      */
     protected function hasSubscriptionsTrait(Model $model): bool
     {
         return in_array(HasPlanSubscriptions::class, class_uses_recursive($model), true);
     }
 }
-
