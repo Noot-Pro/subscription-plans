@@ -98,11 +98,11 @@ class SubscriptionPlansService
         $type = get_class($subscriber);
         $id   = $subscriber->getKey();
 
-        // Clear status cache
+        // Clear status cache (used by EnsureSubscriptionValid middleware)
         Cache::forget("subscription_status_{$type}_{$id}");
 
-        // Clear active subscription cache
-        Cache::forget("subscription_active_{$type}_{$id}");
+        // Clear active subscription cache (used by getActiveSubscription)
+        Cache::forget($this->getCacheKey($subscriber, 'active_subscription'));
     }
 
     /**

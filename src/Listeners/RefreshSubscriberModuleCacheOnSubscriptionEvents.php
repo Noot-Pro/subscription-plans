@@ -2,9 +2,6 @@
 
 namespace NootPro\SubscriptionPlans\Listeners;
 
-use Illuminate\Support\Facades\Cache;
-use NootPro\SubscriptionPlans\Enums\Modules as PackageModulesEnum;
-
 class RefreshSubscriberModuleCacheOnSubscriptionEvents
 {
     /**
@@ -29,29 +26,20 @@ class RefreshSubscriberModuleCacheOnSubscriptionEvents
         // Determine caller event by class short name
         $eventClass = class_basename($event);
 
-        if ($eventClass === 'SubscriptionCreated' || $eventClass === 'SubscriptionRestored') {
-            \NootPro\SubscriptionPlans\Facades\SubscriptionPlans::refreshModuleCache($subscriber);
-
-            return;
-        }
-
-        if ($eventClass === 'SubscriptionUpdated') {
-            \NootPro\SubscriptionPlans\Facades\SubscriptionPlans::refreshModuleCache($subscriber);
+        // For all subscription events, clear the cache but don't refresh it immediately
+        // This ensures cache is cleared, and it will be repopulated on next request
+        // when the transaction has definitely committed and database changes are visible
+        if ($eventClass === 'SubscriptionCreated' || $eventClass === 'SubscriptionRestored' || $eventClass === 'SubscriptionUpdated') {
+            // Clear both subscription and module caches
+            \NootPro\SubscriptionPlans\Facades\SubscriptionPlans::clearSubscriptionCache($subscriber);
+            \NootPro\SubscriptionPlans\Facades\SubscriptionPlans::clearModuleCache($subscriber);
 
             return;
         }
 
         if ($eventClass === 'SubscriptionDeleted') {
             \NootPro\SubscriptionPlans\Facades\SubscriptionPlans::clearModuleCache($subscriber);
-
-            // Clear per-module caches if Modules enum exists/configured
-            $modulesEnum = config('subscription-plans.enums.modules', PackageModulesEnum::class);
-            if (enum_exists($modulesEnum)) {
-                foreach ($modulesEnum::cases() as $module) {
-                    $moduleValue = $module instanceof \BackedEnum ? $module->value : $module->name;
-                    Cache::forget("company_{$subscriber->id}_module_{$moduleValue}");
-                }
-            }
+            \NootPro\SubscriptionPlans\Facades\SubscriptionPlans::clearSubscriptionCache($subscriber);
 
             return;
         }
