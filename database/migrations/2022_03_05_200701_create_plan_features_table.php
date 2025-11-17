@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('plan_features', function (Blueprint $table) {
             $table->id();
-            $table->integer('plan_id')->unsigned()->nullable();
+            $table->unsignedBigInteger('plan_id')->nullable();
             $table->string('slug')->nullable();
             $table->json('name');
             $table->json('description')->nullable();
