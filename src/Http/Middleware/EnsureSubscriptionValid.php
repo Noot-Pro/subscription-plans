@@ -135,14 +135,19 @@ class EnsureSubscriptionValid
      */
     protected function handleNoSubscription(Request $request, ?string $redirectTo = null): Response
     {
-        $redirectTo = $redirectTo ?? config('subscription-plans.middleware.redirect_route', 'subscription.plans');
-
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => __('subscription-plans::subscription-plans.no_active_subscription'),
             ], 403);
         }
 
-        return redirect()->route($redirectTo);
+        if (class_exists(\Filament\Facades\Filament::class)) {
+            $panel = \Filament\Facades\Filament::getPanel('subscription');
+            if ($panel) {
+                return redirect()->to((string) $panel->getUrl());
+            }
+        }
+
+        return redirect()->route($redirectTo ?? config('subscription-plans.middleware.redirect_route', 'subscription.plans'));
     }
 }
