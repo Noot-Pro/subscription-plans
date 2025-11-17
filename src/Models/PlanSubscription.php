@@ -557,9 +557,12 @@ class PlanSubscription extends Model
             $query->where('id', '!=', $this->getKey());
         }
 
-        $query->update([
-            'is_active' => false,
-        ]);
+        // Update each subscription individually to ensure events are fired
+        // This is important for cache clearing and other event listeners
+        $query->get()->each(function (self $subscription): void {
+            $subscription->is_active = false;
+            $subscription->save();
+        });
     }
 
     /**
