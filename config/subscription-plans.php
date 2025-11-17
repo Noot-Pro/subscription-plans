@@ -139,28 +139,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Feature Manager Configuration
-    |--------------------------------------------------------------------------
-    |
-    | Configure the SubscriptionFeatureManager with resolvers and counters.
-    |
-    | - subscriber_resolver: Callback that returns the current subscriber model.
-    |   For Filament, use: function () { return \Filament\Facades\Filament::getTenant(); }
-    | - feature_counters: Array of feature slug => callback pairs for counting usage
-    |
-    | Example for Filament:
-    | 'subscriber_resolver' => function () {
-    |     return \Filament\Facades\Filament::getTenant();
-    | },
-    |
-    */
-    'feature_manager' => [
-        'subscriber_resolver' => null,
-        'feature_counters' => [],
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
     | Cache TTL (Legacy - use cache.ttl instead)
     |--------------------------------------------------------------------------
     |
