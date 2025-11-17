@@ -139,6 +139,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Feature Manager Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure the SubscriptionFeatureManager with resolvers and counters.
+    |
+    | - subscriber_resolver: Callback that returns the current subscriber model
+    | - feature_counters: Array of feature slug => callback pairs for counting usage
+    |
+    */
+    'feature_manager' => [
+        'subscriber_resolver' => null,
+        'feature_counters' => [],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Cache TTL (Legacy - use cache.ttl instead)
     |--------------------------------------------------------------------------
     |

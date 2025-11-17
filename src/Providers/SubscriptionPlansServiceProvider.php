@@ -8,6 +8,7 @@ use NootPro\SubscriptionPlans\Console\Commands\DeactivateExpiredSubscriptions;
 use NootPro\SubscriptionPlans\Console\Commands\ResetFeatureUsage;
 use NootPro\SubscriptionPlans\Models\PlanSubscription;
 use NootPro\SubscriptionPlans\Observers\PlanSubscriptionObserver;
+use NootPro\SubscriptionPlans\Services\SubscriptionFeatureManager;
 use NootPro\SubscriptionPlans\Services\SubscriptionPlansService;
 
 class SubscriptionPlansServiceProvider extends ServiceProvider
@@ -70,6 +71,29 @@ class SubscriptionPlansServiceProvider extends ServiceProvider
         // Load helper functions
         if (file_exists($helperPath = __DIR__.'/../Helpers/subscription.php')) {
             require_once $helperPath;
+        }
+
+        // Configure SubscriptionFeatureManager from config
+        $this->configureFeatureManager();
+    }
+
+    /**
+     * Configure SubscriptionFeatureManager from config file.
+     */
+    protected function configureFeatureManager(): void
+    {
+        $config = config('subscription-plans.feature_manager', []);
+
+        if (isset($config['subscriber_resolver']) && is_callable($config['subscriber_resolver'])) {
+            SubscriptionFeatureManager::setSubscriberResolver($config['subscriber_resolver']);
+        }
+
+        if (isset($config['feature_counters']) && is_array($config['feature_counters'])) {
+            foreach ($config['feature_counters'] as $feature => $counter) {
+                if (is_callable($counter)) {
+                    SubscriptionFeatureManager::registerFeatureCounter($feature, $counter);
+                }
+            }
         }
     }
 }
