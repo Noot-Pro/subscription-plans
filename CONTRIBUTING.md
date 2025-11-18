@@ -1,6 +1,6 @@
-# Contributing to Laravel Subscription Plans
+# Contributing to Subscription Plans
 
-Thank you for considering contributing to Laravel Subscription Plans! 
+Thank you for considering contributing to Subscription Plans! 
 
 ## Development Process
 

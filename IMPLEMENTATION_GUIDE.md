@@ -1,4 +1,4 @@
-# Implementation Guide - Laravel Subscription Plans
+# Implementation Guide - Subscription Plans
 
 A step-by-step guide to implement this package in your Laravel projects.
 
@@ -486,7 +486,33 @@ protected $listen = [
 
 ## 🛡️ Step 10: Middleware Protection
 
-### Create Middleware
+### Option 1: Use Built-in Middleware (Recommended)
+
+The package includes a built-in middleware `EnsureSubscriptionValid` that you can use:
+
+```php
+// app/Http/Kernel.php (Laravel 11+)
+// bootstrap/app.php (Laravel 11+)
+use NootPro\SubscriptionPlans\Http\Middleware\EnsureSubscriptionValid;
+
+// In bootstrap/app.php
+->middleware([
+    'web' => [
+        EnsureSubscriptionValid::class,
+    ],
+])
+
+// Or register as alias
+->withMiddleware(function (Middleware $middleware) {
+    $middleware->alias([
+        'subscription' => EnsureSubscriptionValid::class,
+    ]);
+})
+```
+
+### Option 2: Create Custom Middleware
+
+If you need custom logic, create your own middleware:
 
 ```bash
 php artisan make:middleware CheckSubscription
@@ -524,13 +550,20 @@ class CheckSubscription
 }
 ```
 
-### Register Middleware
+### Register Custom Middleware
 
 ```php
-// app/Http/Kernel.php
+// app/Http/Kernel.php (Laravel 10)
 protected $middlewareAliases = [
     'subscribed' => \App\Http\Middleware\CheckSubscription::class,
 ];
+
+// Or in bootstrap/app.php (Laravel 11+)
+->withMiddleware(function (Middleware $middleware) {
+    $middleware->alias([
+        'subscribed' => \App\Http\Middleware\CheckSubscription::class,
+    ]);
+})
 ```
 
 ### Use in Routes

@@ -1,4 +1,4 @@
-# Laravel Subscription Plans
+# Subscription Plans
 A comprehensive, flexible, and production-ready subscription and plans management system for Laravel applications. Perfect for SaaS applications, membership sites, and any project requiring subscription-based access control.
 
 ## Features
@@ -17,7 +17,7 @@ A comprehensive, flexible, and production-ready subscription and plans managemen
 - ✅ Module-based access control
 
 ### Advanced Features
-- ✅ **Subscription Middleware** - Protect routes with subscription validation
+- ✅ **Subscription Middleware** - Built-in `EnsureSubscriptionValid` middleware to protect routes with subscription validation
 - ✅ **ModulesGate Trait** - Authorization for Filament resources/pages based on active subscription modules
 
 ## Installation
@@ -39,6 +39,12 @@ php artisan migrate
 
 ```bash
 php artisan vendor:publish --tag=subscription-plans-config
+```
+
+### Publish Translations
+
+```bash
+php artisan vendor:publish --tag=subscription-plans-translations
 ```
 
 ## Quick Start
@@ -351,6 +357,39 @@ Make sure your `config/subscription-plans.php` has the tenant model configured:
 ```
 
 Or the trait will attempt to auto-detect common tenant model names.
+
+### Subscription Middleware
+
+The package includes a built-in middleware `EnsureSubscriptionValid` to protect routes:
+
+```php
+// Register in bootstrap/app.php (Laravel 11+)
+use NootPro\SubscriptionPlans\Http\Middleware\EnsureSubscriptionValid;
+
+->withMiddleware(function (Middleware $middleware) {
+    $middleware->alias([
+        'subscription' => EnsureSubscriptionValid::class,
+    ]);
+})
+
+// Use in routes
+Route::middleware(['auth', 'subscription'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index']);
+});
+```
+
+The middleware automatically:
+- Resolves the subscriber from the request (via config or auto-detection)
+- Checks for active subscription (with caching for performance)
+- Redirects to a configurable route if no active subscription exists
+
+Configure the redirect route in `config/subscription-plans.php`:
+
+```php
+'middleware' => [
+    'redirect_route' => env('SUBSCRIPTION_REDIRECT_ROUTE', 'subscription.plans'),
+],
+```
 
 ## Testing
 
