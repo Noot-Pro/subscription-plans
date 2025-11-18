@@ -22,7 +22,6 @@ A comprehensive, flexible, and production-ready subscription and plans managemen
 - ✅ Module-based access control
 
 ### Advanced Features
-- ✅ **Email Notifications** - Automated notifications for subscription events
 - ✅ **Subscription Middleware** - Protect routes with subscription validation
 - ✅ **Console Commands** - Automated subscription maintenance tasks
 
@@ -68,6 +67,7 @@ class Company extends Model
 use NootPro\SubscriptionPlans\Models\Plan;
 use NootPro\SubscriptionPlans\Enums\SubscriptionModel;
 use NootPro\SubscriptionPlans\Enums\PlanType;
+use NootPro\SubscriptionPlans\Enums\Interval;
 
 $plan = Plan::create([
     'name' => ['en' => 'Pro Plan'],
@@ -75,9 +75,9 @@ $plan = Plan::create([
     'price' => 99.00,
     'currency' => 'USD',
     'invoice_period' => 1,
-    'invoice_interval' => 'month',
+    'invoice_interval' => Interval::Month,
     'trial_period' => 14,
-    'trial_interval' => 'day',
+    'trial_interval' => Interval::Day,
     'subscription_model' => SubscriptionModel::Fixed,
     'type' => PlanType::Plan,
     'is_active' => true,
@@ -89,12 +89,14 @@ $plan = Plan::create([
 
 ```php
 use NootPro\SubscriptionPlans\Enums\Features;
+use NootPro\SubscriptionPlans\Enums\Interval;
 
 $plan->features()->create([
     'slug' => Features::Users->value,
     'name' => ['en' => 'Users'],
     'value' => 10, // 10 users allowed
     'resettable_period' => 0, // No reset
+    'resettable_interval' => Interval::Month,
     'sort_order' => 1,
 ]);
 ```
@@ -144,29 +146,6 @@ protected $listen = [
 ];
 ```
 
-## Advanced Features
-
-### Email Notifications
-
-The package includes notifications for subscription events:
-
-```php
-use NootPro\SubscriptionPlans\Notifications\SubscriptionExpiringNotification;
-
-// Notifications are sent automatically via events
-// Configure in config/subscription-plans.php
-'notifications' => [
-    'enabled' => true,
-    'channels' => ['mail', 'database'],
-],
-```
-
-Available notifications:
-- `SubscriptionCreatedNotification` - When subscription is created
-- `SubscriptionExpiringNotification` - When subscription is about to expire
-- `SubscriptionExpiredNotification` - When subscription expires
-- `TrialEndingNotification` - When trial period is ending
-
 ## Usage Examples
 
 ### Check Subscription Status
@@ -201,7 +180,12 @@ $subscription->changePlan($newPlan);
 ### Query Subscriptions
 
 ```php
-// Get active subscriptions
+use NootPro\SubscriptionPlans\Models\PlanSubscription;
+
+// Get active subscription
+$subscription = $company->activePlanSubscription();
+
+// Get all active subscriptions
 $activeSubscriptions = $company->activePlanSubscriptions();
 
 // Check if subscribed to a plan
@@ -230,27 +214,25 @@ Edit `config/subscription-plans.php` to customize:
 - Laravel >= 11.0
 - MySQL 5.7+ / PostgreSQL 9.6+ / SQLite 3.8+
 
-## Best Practices Implemented
+## Best Practices
 
 This package follows Laravel and PHP best practices:
 
-- ✅ **PSR-12 Coding Standards** - Clean, readable code
-- ✅ **Type Safety** - Strict types and comprehensive type hints
-- ✅ **Mass Assignment Protection** - All models use `$fillable`
-- ✅ **Database Transactions** - Critical operations are wrapped in transactions
-- ✅ **Event-Driven Architecture** - Extensible through events
-- ✅ **Comprehensive Testing** - Unit and feature tests included
-- ✅ **Documentation** - Well-documented code with PHPDoc blocks
-- ✅ **Soft Deletes** - Data integrity with soft delete support
-- ✅ **Polymorphic Relationships** - Flexible subscriber models
-- ✅ **Query Scopes** - Reusable query logic
-- ✅ **Service Layer** - Business logic separation
+- ✅ PSR-12 Coding Standards
+- ✅ Type Safety with strict types
+- ✅ Mass Assignment Protection
+- ✅ Database Transactions
+- ✅ Event-Driven Architecture
+- ✅ Comprehensive Testing (PEST)
+- ✅ Soft Deletes for data integrity
+- ✅ Polymorphic Relationships
+- ✅ Query Scopes
 
 ## Advanced Usage
 
 ### Custom Subscriber Models
 
-Any model can be a subscriber by implementing the interface and using the trait:
+Any model can be a subscriber by using the trait:
 
 ```php
 use NootPro\SubscriptionPlans\Traits\HasPlanSubscriptions;
@@ -320,7 +302,7 @@ vendor/bin/pest --coverage --min=80
 
 ## Security
 
-If you discover any security issues, please email security@example.com instead of using the issue tracker.
+If you discover any security issues, please email support@noot-web.com instead of using the issue tracker.
 
 ## Documentation
 
@@ -339,7 +321,7 @@ Please see [CHANGELOG.md](CHANGELOG.md) for recent changes.
 
 ## Credits
 
-- [Hamza](https://github.com/hamza)
+- [Hamza Mughales](https://github.com/Hamza-Mughales)
 - [All Contributors](../../contributors)
 
 ## License
