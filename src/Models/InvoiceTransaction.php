@@ -11,12 +11,17 @@ use NootPro\SubscriptionPlans\Enums\InvoiceTransactionStatus;
 /**
  * InvoiceTransaction.
  *
+ * @property int $id
  * @property int $invoice_id
  * @property float $amount
- * @property string|null $payment_method
+ * @property string|null $payment_method Payment method type (e.g., 'bank_transfer', 'visa') or reference to PaymentMethod model
  * @property string|null $transaction_id
  * @property InvoiceTransactionStatus $status
  * @property string|null $notes
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \NootPro\SubscriptionPlans\Models\Invoice $invoice
+ * @property-read \NootPro\SubscriptionPlans\Models\PaymentMethod|null $paymentMethod
  */
 class InvoiceTransaction extends Model
 {
@@ -65,7 +70,11 @@ class InvoiceTransaction extends Model
     }
 
     /**
-     * Get payment method relationship (optional - payment_method can be string or reference).
+     * Get payment method relationship.
+     *
+     * Note: The payment_method field stores the payment method type string (e.g., 'bank_transfer', 'visa').
+     * This relationship matches the payment_method value to the PaymentMethod model's type field.
+     * If no matching PaymentMethod exists, this relationship will return null.
      *
      * @return BelongsTo<PaymentMethod, $this>
      */
@@ -74,6 +83,6 @@ class InvoiceTransaction extends Model
         /** @var class-string<PaymentMethod> $modelClass */
         $modelClass = config('subscription-plans.models.payment_method');
 
-        return $this->belongsTo($modelClass, 'payment_method', 'slug');
+        return $this->belongsTo($modelClass, 'payment_method', 'type');
     }
 }
