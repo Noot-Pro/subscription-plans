@@ -47,7 +47,7 @@ class Invoice extends Model
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
-        $this->table = config('subscription-plans.table_names.invoices', 'invoices');
+        $this->table = config('subscription-plans.table_names.invoices', 'plan_invoices');
 
         // Add subscriber key to fillable dynamically
         $subscriberKey = config('subscription-plans.foreign_keys.subscriber_id', 'subscriber_id');

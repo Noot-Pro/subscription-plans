@@ -11,7 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('plans', function (Blueprint $table) {
+        $tableName = config('subscription-plans.table_names.plans', 'plan_plans');
+        
+        Schema::create($tableName, function (Blueprint $table) {
             $table->id();
             $table->string('slug')->unique();
             $table->string('type')->nullable();
@@ -47,6 +49,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('plans');
+        $tableName = config('subscription-plans.table_names.plans', 'plan_plans');
+        Schema::dropIfExists($tableName);
     }
 };

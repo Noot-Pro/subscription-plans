@@ -29,6 +29,6 @@ class PaymentMethod extends Model
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
-        $this->table = config('subscription-plans.table_names.payment_methods', 'payment_methods');
+        $this->table = config('subscription-plans.table_names.payment_methods', 'plan_payment_methods');
     }
 }

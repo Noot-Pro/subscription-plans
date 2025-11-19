@@ -63,6 +63,12 @@ class Plan extends Model
     use HasTranslations;
     use SoftDeletes;
 
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+        $this->table = config('subscription-plans.table_names.plans', 'plan_plans');
+    }
+
     /**
      * The attributes that are mass assignable.
      *

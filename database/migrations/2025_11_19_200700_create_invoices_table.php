@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        $tableName              = config('subscription-plans.table_names.invoices', 'invoices');
+        $tableName              = config('subscription-plans.table_names.invoices', 'plan_invoices');
         $subscriberKey          = config('subscription-plans.foreign_keys.subscriber_id', 'subscriber_id');
         $planSubscriptionsTable = config('subscription-plans.table_names.plan_subscriptions', 'plan_subscriptions');
 
@@ -37,7 +37,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        $tableName = config('subscription-plans.table_names.invoices', 'invoices');
+        $tableName = config('subscription-plans.table_names.invoices', 'plan_invoices');
         Schema::dropIfExists($tableName);
     }
 };

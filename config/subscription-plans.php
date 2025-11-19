@@ -60,16 +60,16 @@ return [
     |
     */
     'table_names' => [
-        'plans'                      => 'plans',
+        'plans'                      => 'plan_plans',
         'plan_features'              => 'plan_features',
         'plan_subscriptions'         => 'plan_subscriptions',
         'plan_subscription_usage'    => 'plan_subscription_usage',
         'plan_subscription_features' => 'plan_subscription_features',
         'plan_modules'               => 'plan_modules',
-        'invoices'                   => 'invoices',
-        'invoice_items'              => 'invoice_items',
-        'invoice_transactions'       => 'invoice_transactions', // Table name (plural)
-        'payment_methods'            => 'payment_methods',
+        'invoices'                   => 'plan_invoices',
+        'invoice_items'              => 'plan_invoice_items',
+        'invoice_transactions'       => 'plan_invoice_transactions',
+        'payment_methods'            => 'plan_payment_methods',
     ],
 
     /*

@@ -11,7 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('plan_subscriptions', function (Blueprint $table) {
+        $tableName = config('subscription-plans.table_names.plan_subscriptions', 'plan_subscriptions');
+        $plansTable = config('subscription-plans.table_names.plans', 'plan_plans');
+        
+        Schema::create($tableName, function (Blueprint $table) use ($plansTable) {
             $table->id();
             $table->morphs('subscriber');
             $table->bigInteger('plan_id')->unsigned()->nullable();
@@ -33,7 +36,7 @@ return new class extends Migration
             $table->softDeletes();
 
             // Foreign Keys
-            $table->foreign('plan_id')->references('id')->on('plans')
+            $table->foreign('plan_id')->references('id')->on($plansTable)
                 ->onDelete('cascade')->onUpdate('cascade');
 
             // Performance Indexes
@@ -50,6 +53,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('plan_subscriptions');
+        $tableName = config('subscription-plans.table_names.plan_subscriptions', 'plan_subscriptions');
+        Schema::dropIfExists($tableName);
     }
 };

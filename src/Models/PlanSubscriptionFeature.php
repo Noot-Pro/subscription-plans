@@ -22,12 +22,11 @@ class PlanSubscriptionFeature extends Model
 {
     use SoftDeletes;
 
-    /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
-    protected $table = 'plan_subscription_features';
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+        $this->table = config('subscription-plans.table_names.plan_subscription_features', 'plan_subscription_features');
+    }
 
     /**
      * The attributes that are mass assignable.

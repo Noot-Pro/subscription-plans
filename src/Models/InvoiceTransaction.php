@@ -27,7 +27,7 @@ class InvoiceTransaction extends Model
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
-        $this->table = config('subscription-plans.table_names.invoice_transactions', 'invoice_transactions'); // Table name is plural
+        $this->table = config('subscription-plans.table_names.invoice_transactions', 'plan_invoice_transactions'); // Table name is plural
     }
 
     public function invoice(): BelongsTo

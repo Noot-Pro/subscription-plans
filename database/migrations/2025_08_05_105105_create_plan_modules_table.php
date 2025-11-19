@@ -11,7 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('plan_modules', function (Blueprint $table) {
+        $tableName = config('subscription-plans.table_names.plan_modules', 'plan_modules');
+        $plansTable = config('subscription-plans.table_names.plans', 'plan_plans');
+        
+        Schema::create($tableName, function (Blueprint $table) use ($plansTable) {
             $table->id();
             $table->unsignedBigInteger('plan_id')->nullable();
             $table->string('module');
@@ -21,7 +24,7 @@ return new class extends Migration
             $table->softDeletes();
 
             // Indexes
-            $table->foreign('plan_id')->references('id')->on('plans')
+            $table->foreign('plan_id')->references('id')->on($plansTable)
                 ->onDelete('cascade')->onUpdate('cascade');
         });
     }
@@ -31,6 +34,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('plan_modules');
+        $tableName = config('subscription-plans.table_names.plan_modules', 'plan_modules');
+        Schema::dropIfExists($tableName);
     }
 };

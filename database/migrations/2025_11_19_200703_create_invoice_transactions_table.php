@@ -8,8 +8,8 @@ return new class extends Migration
 {
     public function up(): void
     {
-        $tableName     = config('subscription-plans.table_names.invoice_transactions', 'invoice_transactions');
-        $invoicesTable = config('subscription-plans.table_names.invoices', 'invoices');
+        $tableName     = config('subscription-plans.table_names.invoice_transactions', 'plan_invoice_transactions');
+        $invoicesTable = config('subscription-plans.table_names.invoices', 'plan_invoices');
 
         Schema::create($tableName, function (Blueprint $table) use ($invoicesTable) {
             $table->id();
@@ -29,7 +29,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        $tableName = config('subscription-plans.table_names.invoice_transactions', 'invoice_transactions');
+        $tableName = config('subscription-plans.table_names.invoice_transactions', 'plan_invoice_transactions');
         Schema::dropIfExists($tableName);
     }
 };

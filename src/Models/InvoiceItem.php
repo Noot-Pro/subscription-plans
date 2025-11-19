@@ -37,7 +37,7 @@ class InvoiceItem extends Model
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
-        $this->table = config('subscription-plans.table_names.invoice_items', 'invoice_items');
+        $this->table = config('subscription-plans.table_names.invoice_items', 'plan_invoice_items');
     }
 
     public function invoice(): BelongsTo

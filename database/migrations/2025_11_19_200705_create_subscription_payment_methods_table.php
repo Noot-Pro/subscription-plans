@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        $tableName = config('subscription-plans.table_names.payment_methods', 'payment_methods');
+        $tableName = config('subscription-plans.table_names.payment_methods', 'plan_payment_methods');
 
         Schema::create($tableName, function (Blueprint $table) {
             $table->id();
@@ -22,7 +22,8 @@ return new class extends Migration
 
     public function down(): void
     {
-        $tableName = config('subscription-plans.table_names.payment_methods', 'payment_methods');
+        $tableName = config('subscription-plans.table_names.payment_methods', 'plan_payment_methods');
         Schema::dropIfExists($tableName);
     }
 };
+
