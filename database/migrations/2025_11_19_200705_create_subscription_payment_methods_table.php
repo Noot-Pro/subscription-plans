@@ -12,11 +12,17 @@ return new class extends Migration
 
         Schema::create($tableName, function (Blueprint $table) {
             $table->id();
-            $table->json('name'); // Translatable
-            $table->string('slug', 190)->unique();
+            $table->json('name');
+            $table->string('type');
             $table->boolean('is_active')->default(true);
             $table->boolean('is_default')->default(false);
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
+
+            $table->index('type');
+            $table->index('is_active');
+            $table->index('is_default');
         });
     }
 
