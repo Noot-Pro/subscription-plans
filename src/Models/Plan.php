@@ -28,6 +28,8 @@ use Spatie\Translatable\HasTranslations;
  * @property float $price
  * @property Interval $invoice_interval
  * @property int $invoice_period
+ * @property SubscriptionModel $subscription_model
+ * @property int $sequence
  * @property-read Collection|PlanFeature[]      $features
  * @property-read Collection|PlanSubscription[] $subscriptions
  *
@@ -49,7 +51,9 @@ use Spatie\Translatable\HasTranslations;
  * @method static Builder|Plan whereProratePeriod($value)
  * @method static Builder|Plan whereSignupFee($value)
  * @method static Builder|Plan whereSlug($value)
+ * @method static Builder|Plan whereSequence($value)
  * @method static Builder|Plan whereSortOrder($value)
+ * @method static Builder|Plan whereSubscriptionModel($value)
  * @method static Builder|Plan whereTrialInterval($value)
  * @method static Builder|Plan whereTrialPeriod($value)
  * @method static Builder|Plan whereUpdatedAt($value)
