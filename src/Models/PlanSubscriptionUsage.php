@@ -20,7 +20,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property-read PlanFeature      $feature
  * @property-read PlanSubscription $subscription
  *
- * @method static Builder|PlanSubscriptionUsage byFeatureSlug($featureSlug)
+ * @method static Builder|PlanSubscriptionUsage byFeatureCode($featureCode)
  * @method static Builder|PlanSubscriptionUsage whereCreatedAt($value)
  * @method static Builder|PlanSubscriptionUsage whereDeletedAt($value)
  * @method static Builder|PlanSubscriptionUsage whereFeatureId($value)
@@ -79,14 +79,14 @@ class PlanSubscriptionUsage extends Model
     }
 
     /**
-     * Scope subscription usage by feature slug.
+     * Scope subscription usage by feature code.
      *
      * @param  Builder<PlanSubscription>  $builder
      * @return Builder<PlanSubscription>
      */
-    public function scopeByFeatureSlug(Builder $builder, string $featureSlug, int $planId): Builder
+    public function scopeByFeatureCode(Builder $builder, string $featureCode, int $planId): Builder
     {
-        $feature = \NootPro\SubscriptionPlans\Models\PlanFeature::where('plan_id', $planId)->where('code', $featureSlug)->firstOrFail();
+        $feature = \NootPro\SubscriptionPlans\Models\PlanFeature::where('plan_id', $planId)->where('code', $featureCode)->firstOrFail();
 
         return $builder->where('feature_id', $feature->getKey());
     }

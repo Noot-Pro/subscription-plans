@@ -21,11 +21,11 @@ trait TracksFeatureUsage
      * Record feature usage for a subscriber.
      *
      * @param  Model|null  $subscriber  The subscriber model (must use HasPlanSubscriptions trait)
-     * @param  string  $featureSlug  The feature slug to track
+     * @param  string  $featureCode  The feature code to track
      * @param  int  $uses  Number of uses to record (default: 1)
      * @return bool Returns true if usage was recorded, false otherwise
      */
-    protected function recordFeatureUsageForSubscriber(?Model $subscriber, string $featureSlug, int $uses = 1): bool
+    protected function recordFeatureUsageForSubscriber(?Model $subscriber, string $featureCode, int $uses = 1): bool
     {
         if (! $subscriber) {
             return false;
@@ -43,11 +43,11 @@ trait TracksFeatureUsage
         }
 
         // Check if the subscription's plan has the feature
-        if (! $this->planHasFeature($activeSubscription, $featureSlug)) {
+        if (! $this->planHasFeature($activeSubscription, $featureCode)) {
             return false;
         }
 
-        $activeSubscription->recordFeatureUsage($featureSlug, $uses);
+        $activeSubscription->recordFeatureUsage($featureCode, $uses);
 
         return true;
     }
@@ -56,11 +56,11 @@ trait TracksFeatureUsage
      * Decrease feature usage for a subscriber.
      *
      * @param  Model|null  $subscriber  The subscriber model (must use HasPlanSubscriptions trait)
-     * @param  string  $featureSlug  The feature slug to decrease
+     * @param  string  $featureCode  The feature code to decrease
      * @param  int  $amount  Amount to decrease (default: 1)
      * @return bool Returns true if usage was decreased, false otherwise
      */
-    protected function decreaseFeatureUsageForSubscriber(?Model $subscriber, string $featureSlug, int $amount = 1): bool
+    protected function decreaseFeatureUsageForSubscriber(?Model $subscriber, string $featureCode, int $amount = 1): bool
     {
         if (! $subscriber) {
             return false;
@@ -78,11 +78,11 @@ trait TracksFeatureUsage
         }
 
         // Check if the subscription's plan has the feature
-        if (! $this->planHasFeature($activeSubscription, $featureSlug)) {
+        if (! $this->planHasFeature($activeSubscription, $featureCode)) {
             return false;
         }
 
-        $activeSubscription->decreaseUsage($featureSlug, $amount);
+        $activeSubscription->decreaseUsage($featureCode, $amount);
 
         return true;
     }
@@ -91,10 +91,10 @@ trait TracksFeatureUsage
      * Check if a plan subscription's plan has a specific feature.
      *
      * @param  PlanSubscription  $subscription  The subscription to check
-     * @param  string  $featureSlug  The feature slug to check for
+     * @param  string  $featureCode  The feature code to check for
      * @return bool Returns true if the plan has the feature, false otherwise
      */
-    protected function planHasFeature(PlanSubscription $subscription, string $featureSlug): bool
+    protected function planHasFeature(PlanSubscription $subscription, string $featureCode): bool
     {
         $plan = $subscription->plan;
 
@@ -102,7 +102,7 @@ trait TracksFeatureUsage
             return false;
         }
 
-        return $plan->features()->where('code', $featureSlug)->exists();
+        return $plan->features()->where('code', $featureCode)->exists();
     }
 
     /**

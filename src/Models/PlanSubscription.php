@@ -269,7 +269,7 @@ class PlanSubscription extends Model
     }
 
     /**
-     * Scope subscription usage by feature slug.
+     * Scope subscription by subscriber.
      *
      * @param  Builder<PlanSubscription>  $builder
      * @return Builder<PlanSubscription>
@@ -281,7 +281,7 @@ class PlanSubscription extends Model
     }
 
     /**
-     * Scope subscription usage by feature slug.
+     * Scope subscriptions with ending trial.
      *
      * @param  Builder<PlanSubscription>  $builder
      * @return Builder<PlanSubscription>
@@ -295,7 +295,7 @@ class PlanSubscription extends Model
     }
 
     /**
-     * Scope subscription usage by feature slug.
+     * Scope subscriptions with ended trial.
      *
      * @param  Builder<PlanSubscription>  $builder
      * @return Builder<PlanSubscription>
@@ -306,7 +306,7 @@ class PlanSubscription extends Model
     }
 
     /**
-     * Scope subscription usage by feature slug.
+     * Scope subscriptions with ending period.
      *
      * @param  Builder<PlanSubscription>  $builder
      * @return Builder<PlanSubscription>
@@ -320,7 +320,7 @@ class PlanSubscription extends Model
     }
 
     /**
-     * Scope subscription usage by feature slug.
+     * Scope subscriptions with ended period.
      *
      * @param  Builder<PlanSubscription>  $builder
      * @return Builder<PlanSubscription>
@@ -340,7 +340,7 @@ class PlanSubscription extends Model
     }
 
     /**
-     * Scope subscription usage by feature slug.
+     * Scope active subscriptions.
      *
      * @param  Builder<PlanSubscription>  $builder
      * @return Builder<PlanSubscription>
@@ -381,9 +381,9 @@ class PlanSubscription extends Model
         return $this;
     }
 
-    public function recordFeatureUsage(string $featureSlug, int $uses = 1, bool $incremental = true): PlanSubscriptionUsage
+    public function recordFeatureUsage(string $featureCode, int $uses = 1, bool $incremental = true): PlanSubscriptionUsage
     {
-        $feature = $this->plan->features()->where('code', $featureSlug)->firstOrFail();
+        $feature = $this->plan->features()->where('code', $featureCode)->firstOrFail();
 
         $usage = $this->usage()->firstOrNew([
             'subscription_id' => $this->getKey(),
@@ -411,9 +411,9 @@ class PlanSubscription extends Model
         return $usage;
     }
 
-    public function reduceFeatureUsage(string $featureSlug, int $uses = 1): ?PlanSubscriptionUsage
+    public function reduceFeatureUsage(string $featureCode, int $uses = 1): ?PlanSubscriptionUsage
     {
-        $usage = $this->usage()->byFeatureSlug($featureSlug, $this->plan_id)->first();
+        $usage = $this->usage()->byFeatureCode($featureCode, $this->plan_id)->first();
 
         if ($usage === null) {
             return null;
@@ -429,10 +429,10 @@ class PlanSubscription extends Model
     /**
      * Determine if the feature can be used.
      */
-    public function canUseFeature(string $featureSlug): bool
+    public function canUseFeature(string $featureCode): bool
     {
-        $featureValue = $this->getFeatureValue($featureSlug);
-        $usage        = $this->usage()->byFeatureSlug($featureSlug, $this->plan_id)->first();
+        $featureValue = $this->getFeatureValue($featureCode);
+        $usage        = $this->usage()->byFeatureCode($featureCode, $this->plan_id)->first();
 
         if ($featureValue === -1) {
             return true;
@@ -442,15 +442,15 @@ class PlanSubscription extends Model
             return false;
         }
 
-        return $this->getFeatureRemainings($featureSlug) > 0;
+        return $this->getFeatureRemainings($featureCode) > 0;
     }
 
     /**
      * Get how many times the feature has been used.
      */
-    public function getFeatureUsage(string $featureSlug): int
+    public function getFeatureUsage(string $featureCode): int
     {
-        $usage = $this->usage()->byFeatureSlug($featureSlug, $this->plan_id)->first();
+        $usage = $this->usage()->byFeatureCode($featureCode, $this->plan_id)->first();
 
         return (! $usage || $usage->expired()) ? 0 : (int) $usage->used;
     }
@@ -458,14 +458,14 @@ class PlanSubscription extends Model
     /**
      * Get the available uses.
      */
-    public function getFeatureRemainings(string $featureSlug): int
+    public function getFeatureRemainings(string $featureCode): int
     {
-        return $this->getFeatureValue($featureSlug) - $this->getFeatureUsage($featureSlug);
+        return $this->getFeatureValue($featureCode) - $this->getFeatureUsage($featureCode);
     }
 
-    public function getFeatureValue(string $featureSlug): int
+    public function getFeatureValue(string $featureCode): int
     {
-        $feature = $this->plan->features()->where('code', $featureSlug)->first();
+        $feature = $this->plan->features()->where('code', $featureCode)->first();
 
         return (int) ($feature->value ?? 0);
     }
@@ -484,13 +484,13 @@ class PlanSubscription extends Model
      * This method can be extended to include additional feature purchases.
      * Override getAdditionalFeatureQuantity() to add custom logic.
      */
-    public function getFeatureRemaining(string $featureSlug): int
+    public function getFeatureRemaining(string $featureCode): int
     {
-        $baseRemaining      = $this->getFeatureRemainings($featureSlug);
-        $additionalQuantity = $this->getAdditionalFeatureQuantity($featureSlug);
-        $companyUsage       = $this->getCompanyFeatureUsage($featureSlug);
+        $baseRemaining      = $this->getFeatureRemainings($featureCode);
+        $additionalQuantity = $this->getAdditionalFeatureQuantity($featureCode);
+        $companyUsage       = $this->getCompanyFeatureUsage($featureCode);
 
-        return ($this->getFeatureValue($featureSlug) + $additionalQuantity) - $companyUsage;
+        return ($this->getFeatureValue($featureCode) + $additionalQuantity) - $companyUsage;
     }
 
     /**
@@ -498,9 +498,9 @@ class PlanSubscription extends Model
      *
      * Override this method in your extended model to add support for additional feature purchases.
      */
-    protected function getAdditionalFeatureQuantity(string $featureSlug): int
+    protected function getAdditionalFeatureQuantity(string $featureCode): int
     {
-        return $this->getFeatureAvailableQuantity($featureSlug);
+        return $this->getFeatureAvailableQuantity($featureCode);
     }
 
     /**
@@ -511,10 +511,10 @@ class PlanSubscription extends Model
      * via config('subscription-plans.models.plan_subscription_feature') to use a
      * custom model class, or it will use DB facade to query the table directly.
      *
-     * @param  string  $featureSlug  The slug of the feature
+     * @param  string  $featureCode  The code of the feature
      * @return int The quantity of the feature available (0 if not found)
      */
-    public function getFeatureAvailableQuantity(string $featureSlug): int
+    public function getFeatureAvailableQuantity(string $featureCode): int
     {
         // Ensure plan relationship is loaded
         if (! $this->relationLoaded('plan')) {
@@ -526,7 +526,7 @@ class PlanSubscription extends Model
         }
 
         // Find the feature by code
-        $feature = $this->plan->features()->where('code', $featureSlug)->first();
+        $feature = $this->plan->features()->where('code', $featureCode)->first();
 
         if (! $feature) {
             return 0;
@@ -560,16 +560,16 @@ class PlanSubscription extends Model
      *
      * Override this method to implement company-wide or subscriber-wide usage tracking.
      */
-    protected function getCompanyFeatureUsage(string $featureSlug): int
+    protected function getCompanyFeatureUsage(string $featureCode): int
     {
         // Default: only consider this subscription's usage
-        return $this->getFeatureUsage($featureSlug);
+        return $this->getFeatureUsage($featureCode);
     }
 
-    public function decreaseUsage(string $featureSlug, int $amount = 1): void
+    public function decreaseUsage(string $featureCode, int $amount = 1): void
     {
         /** @var PlanFeature|null $feature */
-        $feature = $this->plan->features()->where('code', $featureSlug)->first();
+        $feature = $this->plan->features()->where('code', $featureCode)->first();
 
         if (! $feature) {
             return;
@@ -590,9 +590,9 @@ class PlanSubscription extends Model
      * This method includes the base plan feature value plus any additional
      * purchased features. Override getAdditionalFeatureQuantity() to add custom logic.
      */
-    public function getTotalFeatureBalance(string $featureSlug): int
+    public function getTotalFeatureBalance(string $featureCode): int
     {
-        return (int) $this->getFeatureValue($featureSlug) + $this->getAdditionalFeatureQuantity($featureSlug);
+        return (int) $this->getFeatureValue($featureCode) + $this->getAdditionalFeatureQuantity($featureCode);
     }
 
     /**

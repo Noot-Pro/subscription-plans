@@ -180,9 +180,9 @@ class Plan extends Model
         return ((int) ($this->grace_period ?? 0)) > 0;
     }
 
-    public function getFeatureBySlug(string $featureSlug): ?PlanFeature
+    public function getFeatureByCode(string $featureCode): ?PlanFeature
     {
-        return $this->features()->where('code', $featureSlug)->first();
+        return $this->features()->where('code', $featureCode)->first();
     }
 
     public function activate(): self

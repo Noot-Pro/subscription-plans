@@ -38,14 +38,14 @@ it('can create a plan feature', function () {
         ->value->toBe(10);
 });
 
-it('can get feature by slug', function () {
+it('can get feature by code', function () {
     $this->plan->features()->create([
         'code'  => Features::Users->value,
         'name'  => ['en' => 'Users'],
         'value' => 5,
     ]);
 
-    $feature = $this->plan->getFeatureBySlug(Features::Users->value);
+    $feature = $this->plan->getFeatureByCode(Features::Users->value);
 
     expect($feature)
         ->not->toBeNull()
@@ -54,7 +54,7 @@ it('can get feature by slug', function () {
 });
 
 it('returns null for non-existent feature', function () {
-    $feature = $this->plan->getFeatureBySlug('non-existent-feature');
+    $feature = $this->plan->getFeatureByCode('non-existent-feature');
 
     expect($feature)->toBeNull();
 });

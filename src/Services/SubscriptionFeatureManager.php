@@ -27,7 +27,7 @@ class SubscriptionFeatureManager
 
     /**
      * Callbacks for counting feature usage per subscriber.
-     * Key is the feature slug, value is a callable that receives the subscriber and returns the count.
+     * Key is the feature code, value is a callable that receives the subscriber and returns the count.
      *
      * @var array<string, callable>
      */
@@ -46,7 +46,7 @@ class SubscriptionFeatureManager
     /**
      * Register a feature counter callback.
      *
-     * @param  string  $feature  Feature slug
+     * @param  string  $feature  Feature code
      * @param  callable  $counter  Callback that receives the subscriber and returns the count
      */
     public static function registerFeatureCounter(string $feature, callable $counter): void
@@ -57,7 +57,7 @@ class SubscriptionFeatureManager
     /**
      * Check if the current subscriber can use a feature based on plan limits.
      *
-     * @param  string  $feature  Feature slug
+     * @param  string  $feature  Feature code
      * @param  Model|null  $subscriber  Optional subscriber model. If not provided, uses resolver.
      */
     public static function canUse(string $feature, ?Model $subscriber = null): bool
@@ -96,11 +96,11 @@ class SubscriptionFeatureManager
     /**
      * Record usage of a feature.
      *
-     * @param  string  $featureSlug  Feature slug
+     * @param  string  $featureCode  Feature code
      * @param  Model|null  $subscriber  Optional subscriber model. If not provided, uses resolver.
      * @param  int  $uses  Number of uses to record (default: 1)
      */
-    public static function recordUsage(string $featureSlug, ?Model $subscriber = null, int $uses = 1): void
+    public static function recordUsage(string $featureCode, ?Model $subscriber = null, int $uses = 1): void
     {
         // Resolve subscriber if not provided
         if ($subscriber === null) {
@@ -118,7 +118,7 @@ class SubscriptionFeatureManager
 
         $activeSubscription = static::getActiveSubscription($subscriber);
         if ($activeSubscription !== null) {
-            $activeSubscription->recordFeatureUsage($featureSlug, $uses);
+            $activeSubscription->recordFeatureUsage($featureCode, $uses);
         }
     }
 
