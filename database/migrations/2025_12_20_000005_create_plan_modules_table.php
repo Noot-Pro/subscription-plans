@@ -14,19 +14,19 @@ return new class extends Migration
         $tableName  = config('subscription-plans.table_names.plan_modules', 'plan_modules');
         $plansTable = config('subscription-plans.table_names.plans', 'plan_plans');
 
-        if (!Schema::hasTable($tableName)) {
+        if (! Schema::hasTable($tableName)) {
             Schema::create($tableName, function (Blueprint $table) use ($plansTable) {
-            $table->id();
-            $table->unsignedBigInteger('plan_id')->nullable();
-            $table->string('module');
-            $table->unsignedBigInteger('created_by')->nullable();
-            $table->unsignedBigInteger('updated_by')->nullable();
-            $table->timestamps();
-            $table->softDeletes();
+                $table->id();
+                $table->unsignedBigInteger('plan_id')->nullable();
+                $table->string('module');
+                $table->unsignedBigInteger('created_by')->nullable();
+                $table->unsignedBigInteger('updated_by')->nullable();
+                $table->timestamps();
+                $table->softDeletes();
 
-            // Indexes
-            $table->foreign('plan_id')->references('id')->on($plansTable)
-                ->onDelete('cascade')->onUpdate('cascade');
+                // Indexes
+                $table->foreign('plan_id')->references('id')->on($plansTable)
+                    ->onDelete('cascade')->onUpdate('cascade');
             });
         }
     }

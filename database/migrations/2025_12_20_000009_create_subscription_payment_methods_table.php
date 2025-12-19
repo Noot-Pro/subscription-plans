@@ -10,20 +10,20 @@ return new class extends Migration
     {
         $tableName = config('subscription-plans.table_names.payment_methods', 'plan_payment_methods');
 
-        if (!Schema::hasTable($tableName)) {
+        if (! Schema::hasTable($tableName)) {
             Schema::create($tableName, function (Blueprint $table) {
-            $table->id();
-            $table->json('name');
-            $table->string('type');
-            $table->boolean('is_active')->default(true);
-            $table->boolean('is_default')->default(false);
-            $table->unsignedBigInteger('created_by')->nullable();
-            $table->unsignedBigInteger('updated_by')->nullable();
-            $table->timestamps();
+                $table->id();
+                $table->json('name');
+                $table->string('type');
+                $table->boolean('is_active')->default(true);
+                $table->boolean('is_default')->default(false);
+                $table->unsignedBigInteger('created_by')->nullable();
+                $table->unsignedBigInteger('updated_by')->nullable();
+                $table->timestamps();
 
-            $table->index('type');
-            $table->index('is_active');
-            $table->index('is_default');
+                $table->index('type');
+                $table->index('is_active');
+                $table->index('is_default');
             });
         }
     }
