@@ -6,45 +6,34 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        $tableName              = config('subscription-plans.table_names.plan_subscription_usage', 'plan_subscription_usage');
-        $planSubscriptionsTable = config('subscription-plans.table_names.plan_subscriptions', 'plan_subscriptions');
-        $planFeaturesTable      = config('subscription-plans.table_names.plan_features', 'plan_features');
+        $tableName = config('subscription-plans.table_names.plan_subscription_usage', 'plan_subscription_usage');
 
-        if (! Schema::hasTable($tableName)) {
-            Schema::create($tableName, function (Blueprint $table) use ($planSubscriptionsTable, $planFeaturesTable) {
-                $table->id();
-                $table->bigInteger('subscription_id')->unsigned()->nullable();
-                $table->bigInteger('feature_id')->unsigned()->nullable();
-                $table->bigInteger('used')->unsigned()->default(0);
-                $table->dateTime('valid_until')->nullable();
-                $table->string('timezone')->nullable();
-                $table->timestamps();
-                $table->softDeletes();
-
-                // Foreign Keys & Indexes
-                $table->unique(['subscription_id', 'feature_id']);
-                $table->foreign('subscription_id')->references('id')->on($planSubscriptionsTable)
-                    ->onDelete('cascade')->onUpdate('cascade');
-                $table->foreign('feature_id')->references('id')->on($planFeaturesTable)
-                    ->onDelete('cascade')->onUpdate('cascade');
-
-                // Performance Indexes
-                $table->index('valid_until');
-            });
+        if (Schema::hasTable($tableName)) {
+            return;
         }
+
+        Schema::create($tableName, function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('subscription_id')->nullable();
+            $table->unsignedBigInteger('feature_id')->nullable();
+            $table->unsignedBigInteger('used')->default(0);
+            $table->timestamp('valid_until')->nullable();
+            $table->string('timezone')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+
+            // Indexes
+            $table->index('subscription_id');
+            $table->index('feature_id');
+            $table->index(['subscription_id', 'feature_id']);
+            $table->index('valid_until');
+        });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        $tableName = config('subscription-plans.table_names.plan_subscription_usage', 'plan_subscription_usage');
-        Schema::dropIfExists($tableName);
+        Schema::dropIfExists(config('subscription-plans.table_names.plan_subscription_usage', 'plan_subscription_usage'));
     }
 };

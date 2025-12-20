@@ -8,25 +8,28 @@ return new class extends Migration
 {
     public function up(): void
     {
-        $tableName     = config('subscription-plans.table_names.invoice_items', 'plan_invoice_items');
-        $invoicesTable = config('subscription-plans.table_names.invoices', 'plan_invoices');
+        $tableName = config('subscription-plans.table_names.invoice_items', 'plan_invoice_items');
 
-        if (! Schema::hasTable($tableName)) {
-            Schema::create($tableName, function (Blueprint $table) use ($invoicesTable) {
-                $table->id();
-                $table->foreignId('invoice_id')->constrained($invoicesTable)->onDelete('cascade');
-                $table->text('description')->nullable();
-                $table->integer('quantity')->default(1);
-                $table->decimal('unit_price', 10, 2)->default(0);
-                $table->decimal('total', 10, 2)->default(0);
-                $table->timestamps();
-            });
+        if (Schema::hasTable($tableName)) {
+            return;
         }
+
+        Schema::create($tableName, function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('invoice_id');
+            $table->text('description')->nullable();
+            $table->unsignedInteger('quantity')->default(1);
+            $table->decimal('unit_price', 10, 2)->default(0);
+            $table->decimal('total', 10, 2)->default(0);
+            $table->timestamps();
+
+            // Indexes
+            $table->index('invoice_id');
+        });
     }
 
     public function down(): void
     {
-        $tableName = config('subscription-plans.table_names.invoice_items', 'plan_invoice_items');
-        Schema::dropIfExists($tableName);
+        Schema::dropIfExists(config('subscription-plans.table_names.invoice_items', 'plan_invoice_items'));
     }
 };
