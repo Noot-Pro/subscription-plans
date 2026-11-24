@@ -462,8 +462,8 @@ Edit `config/subscription-plans.php` to customize:
 
 ## Requirements
 
-- PHP >= 8.3
-- Laravel 12.x or 13.x
+- PHP >= 8.4
+- Laravel 13.x
 - MySQL 5.7+ / PostgreSQL 9.6+ / SQLite 3.8+
 
 ## Best Practices
