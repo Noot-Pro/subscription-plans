@@ -12,8 +12,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [8.2, 8.3]
-        laravel: [11.*, 12.*]
+        php: [8.3]
+        laravel: [12.*]
         stability: [prefer-lowest, prefer-stable]
 
     name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - ${{ matrix.stability }}
@@ -37,18 +37,14 @@ jobs:
       - name: Install dependencies
         run: |
           composer require "laravel/framework:${{ matrix.laravel }}" --no-interaction --no-update
-          if [[ "${{ matrix.laravel }}" == "11.*" ]]; then
-            composer require "orchestra/testbench:^9.0" --no-interaction --no-update
-          else
-            composer require "orchestra/testbench:^10.0" --no-interaction --no-update
-          fi
+          composer require "orchestra/testbench:^10.0" --no-interaction --no-update
           composer update --${{ matrix.stability }} --prefer-dist --no-interaction
 
       - name: Execute tests
         run: vendor/bin/pest
 
       - name: Upload coverage reports to Codecov
-        if: matrix.php == '8.3' && matrix.laravel == '11.*' && matrix.stability == 'prefer-stable'
+        if: matrix.php == '8.3' && matrix.laravel == '12.*' && matrix.stability == 'prefer-stable'
         uses: codecov/codecov-action@v3
         with:
           files: ./coverage.xml
