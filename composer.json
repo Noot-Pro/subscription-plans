@@ -19,16 +19,16 @@
     ],
     "require": {
         "php": "^8.3",
-        "laravel/framework": "^12.0",
+        "laravel/framework": "^12.0|^13.0",
         "spatie/laravel-sluggable": "^4.0",
         "spatie/laravel-translatable": "^6.0",
         "filament/support": "^3.0|^4.0"
     },
     "require-dev": {
-        "orchestra/testbench": "^10.0",
-        "phpunit/phpunit": "^11.0",
-        "pestphp/pest": "^3.8",
-        "pestphp/pest-plugin-laravel": "^3.2",
+        "orchestra/testbench": "^10.12|^11.0",
+        "phpunit/phpunit": "^12.0",
+        "pestphp/pest": "^4.0",
+        "pestphp/pest-plugin-laravel": "^4.0",
         "laravel/pint": "^1.15",
         "phpstan/phpstan": "^2.0",
         "larastan/larastan": "^3.0"
