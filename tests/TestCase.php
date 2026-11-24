@@ -7,6 +7,7 @@ namespace NootPro\SubscriptionPlans\Tests;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use NootPro\SubscriptionPlans\Providers\SubscriptionPlansServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
+use Spatie\Sluggable\SluggableServiceProvider;
 
 class TestCase extends Orchestra
 {
@@ -23,6 +24,7 @@ class TestCase extends Orchestra
     {
         return [
             SubscriptionPlansServiceProvider::class,
+            SluggableServiceProvider::class,
         ];
     }
 
