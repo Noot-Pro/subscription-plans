@@ -464,6 +464,7 @@ Edit `config/subscription-plans.php` to customize:
 
 - PHP >= 8.4
 - Laravel 13.x
+- Filament Support 5.x
 - MySQL 5.7+ / PostgreSQL 9.6+ / SQLite 3.8+
 
 ## Best Practices
